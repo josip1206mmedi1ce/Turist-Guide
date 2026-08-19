@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0878e5">
+<title>Turist Guide</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f6f9;color:#17212b}
+header{background:linear-gradient(135deg,#0878e5,#064ea8);color:#fff;padding:28px 18px 30px;border-radius:0 0 28px 28px}
+.wrap{max-width:760px;margin:auto}h1{font-size:32px;margin:0 0 7px}.sub{opacity:.92}
+.search{display:flex;gap:8px;margin-top:20px}input{flex:1;min-width:0;border:0;border-radius:14px;padding:15px;font-size:17px;outline:none}
+button{border:0;border-radius:14px;padding:14px 17px;font-size:15px;font-weight:700;cursor:pointer}.search button{background:#fff;color:#075dbb}
+main{padding:18px 14px}.cats{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}.cat{white-space:nowrap;background:#fff;border:1px solid #dfe5ea}.cat.active{background:#e8f2ff;color:#0868c8;border-color:#197fe6}
+#status{margin:10px 2px;color:#66727e;font-size:14px}.card{background:#fff;border-radius:18px;margin:12px 0;padding:0;overflow:hidden;box-shadow:0 4px 16px #00000012}
+.photo{height:150px;background:linear-gradient(135deg,#dcecff,#eef2f6);display:flex;align-items:center;justify-content:center;font-size:50px}
+.body{padding:16px}.body h3{margin:0 0 7px;font-size:20px}.meta{color:#5f6c78;font-size:14px;line-height:1.5}.desc{margin:9px 0;color:#46535e;line-height:1.45}.map{background:#0878e5;color:#fff;width:100%;margin-top:7px}.empty{background:#fff;border-radius:18px;padding:20px;text-align:center;color:#65717d}
+.note{font-size:12px;color:#74808a;margin:18px 3px;line-height:1.45}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Turist Guide</h1><div class="sub">Pronađite zanimljiva mjesta u gradu.</div>
+<div class="search"><input id="city" placeholder="Npr. Dubrovnik"><button id="searchBtn">Traži</button></div>
+</div></header>
+<main class="wrap">
+<div class="cats">
+<button class="cat active" data-cat="atrakcije">🏛️ Atrakcije</button>
+<button class="cat" data-cat="plaže">🏖️ Plaže</button>
+<button class="cat" data-cat="restorani">🍽️ Restorani</button>
+<button class="cat" data-cat="muzeji">🏛️ Muzeji</button>
+<button class="cat" data-cat="izleti">🚤 Izleti</button>
+</div>
+<div id="status">Upišite grad i pritisnite Traži.</div>
+<div id="results"></div>
+<div class="note">Ovo je razvojna verzija. Trenutno koristi ugrađene testne podatke za nekoliko gradova. U sljedećoj fazi povezujemo Google Places za stvarne rezultate.</div>
+</main>
+<script>
+const data={
+"Dubrovnik":{
+atrakcije:[
+["🏰","Dubrovačke zidine","Povijesne gradske zidine i jedna od najpoznatijih znamenitosti Dubrovnika.","Dubrovačke zidine, Dubrovnik"],
+["🚠","Žičara Dubrovnik","Panoramski pogled na Dubrovnik i otok Lokrum.","Žičara Dubrovnik"],
+["⛪","Stradun","Glavna povijesna ulica u staroj gradskoj jezgri.","Stradun, Dubrovnik"],
+["🏛️","Knežev dvor","Povijesna palača u srcu stare gradske jezgre.","Knežev dvor, Dubrovnik"]
+],
+plaže:[
+["🏖️","Banje Beach","Popularna gradska plaža s pogledom na stari grad.","Banje Beach, Dubrovnik"],
+["🏖️","Plaža Sveti Jakov","Mirnija plaža s pogledom prema starom gradu.","Sveti Jakov Beach, Dubrovnik"]
+],
+muzeji:[["🏛️","Pomorski muzej","Muzej posvećen dubrovačkoj pomorskoj tradiciji.","Pomorski muzej Dubrovnik"]],
+restorani:[["🍽️","Restorani u Starom gradu","Pretraga restorana u povijesnoj jezgri.","Restaurants Old Town Dubrovnik"]],
+izleti:[["🚤","Lokrum","Otok nadomak Dubrovnika, pogodan za izlet brodom.","Lokrum Island, Dubrovnik"]]
+},
+"Split":{
+atrakcije:[["🏛️","Dioklecijanova palača","Jedna od najvažnijih rimskih građevina na području Splita.","Dioklecijanova palača, Split"],["⛪","Riva","Poznata splitska šetnica uz more.","Riva, Split"],["🏛️","Peristil","Središnji trg povijesne jezgre palače.","Peristil, Split"]],
+plaže:[["🏖️","Bačvice","Poznata gradska pješčana plaža.","Bačvice Beach, Split"]],
+muzeji:[["🏛️","Arheološki muzej Split","Muzej s bogatom zbirkom antičkih i dalmatinskih nalaza.","Archaeological Museum Split"]],
+restorani:[["🍽️","Restorani u centru Splita","Pretraga restorana u centru grada.","Restaurants Split City Center"]],
+izleti:[["🚤","Izleti iz Splita","Pretraga izleta brodom i organiziranih tura.","Boat tours Split"]]
+},
+"Mostar":{
+atrakcije:[["🌉","Stari most","Najpoznatija znamenitost Mostara i simbol grada.","Stari Most, Mostar"],["🏘️","Stari grad Mostar","Povijesna jezgra s bazarom i tradicionalnom arhitekturom.","Old Town Mostar"]],
+plaže:[["🏊","Buna","Popularno izletište uz rijeku Bunu u okolici Mostara.","Buna, Mostar"]],
+muzeji:[["🏛️","Muzej Hercegovine","Muzej posvećen povijesti i kulturi Hercegovine.","Museum of Herzegovina, Mostar"]],
+restorani:[["🍽️","Restorani uz Stari most","Pretraga restorana u staroj jezgri.","Restaurants near Stari Most, Mostar"]],
+izleti:[["🚗","Blagaj","Izletničko mjesto s izvorom Bune i tekijom.","Blagaj Tekija"]]
+]}
+};
+
+let category="atrakcije";
+document.querySelectorAll(".cat").forEach(b=>b.onclick=()=>{document.querySelectorAll(".cat").forEach(x=>x.classList.remove("active"));b.classList.add("active");category=b.dataset.cat; if(document.getElementById("city").value.trim()) search();});
+document.getElementById("searchBtn").onclick=search;
+document.getElementById("city").addEventListener("keydown",e=>{if(e.key==="Enter")search();});
+
+function findCity(name){
+ const n=name.toLowerCase().trim();
+ return Object.keys(data).find(x=>x.toLowerCase()===n) || Object.keys(data).find(x=>n.includes(x.toLowerCase()));
+}
+function search(){
+ const raw=document.getElementById("city").value.trim();
+ const results=document.getElementById("results");
+ if(!raw){document.getElementById("status").textContent="Upišite grad.";results.innerHTML="";return;}
+ const city=findCity(raw);
+ if(!city){document.getElementById("status").textContent="Za sada nemamo testne podatke za taj grad.";results.innerHTML=`<div class="empty">Pokušajte <b>Dubrovnik</b>, <b>Split</b> ili <b>Mostar</b>.<br><br>Google Places ćemo dodati u sljedećoj fazi.</div>`;return;}
+ const arr=data[city][category]||[];
+ document.getElementById("status").textContent=`${city} • pronađeno ${arr.length} rezultata`;
+ results.innerHTML=arr.map(x=>`<div class="card"><div class="photo">${x[0]}</div><div class="body"><h3>${x[1]}</h3><div class="meta">📍 ${x[3]}<br>⭐ Testni prikaz</div><div class="desc">${x[2]}</div><button class="map" onclick="maps(${JSON.stringify(x[3])})">🗺️ Otvori u Google Maps</button></div></div>`).join("");
+}
+function maps(q){window.location.href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q);}
+</script>
+</body>
+</html>

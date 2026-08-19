@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="hr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0878e5">
+<title>Turist Guide</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f7fb;color:#172033}
+header{background:linear-gradient(135deg,#0878e5,#064ea8);color:white;padding:28px 18px 34px}
+.wrap{max-width:900px;margin:auto}
+h1{margin:0 0 8px;font-size:34px}
+.sub{opacity:.9;margin-bottom:22px}
+.search{display:flex;gap:10px}
+input{flex:1;min-width:0;padding:16px;border:0;border-radius:12px;font-size:17px;outline:none}
+button{border:0;border-radius:12px;padding:15px 20px;font-size:16px;font-weight:700;cursor:pointer}
+#searchBtn{background:#fff;color:#075fb8}
+#nearBtn{margin-top:12px;background:#eaf3ff;color:#075fb8;width:100%}
+main{padding:22px 16px}
+#status{margin:8px 0 18px;color:#536174}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px}
+.card{background:white;border-radius:16px;padding:18px;box-shadow:0 4px 18px #00000012}
+.icon{font-size:30px}
+.card h3{margin:8px 0 6px}
+.meta{color:#68758a;font-size:14px;line-height:1.45;min-height:42px}
+.map{display:inline-block;margin-top:14px;background:#0878e5;color:white;text-decoration:none;padding:11px 14px;border-radius:10px;font-weight:700}
+.empty{background:white;padding:22px;border-radius:16px;line-height:1.55}
+footer{text-align:center;color:#718096;padding:30px 15px}
+@media(max-width:560px){.search{flex-direction:column}#searchBtn{width:100%}h1{font-size:29px}}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<h1>Turist Guide</h1>
+<div class="sub">Pronađite turističke atrakcije u gradu</div>
+<div class="search">
+<input id="city" placeholder="Npr. Dubrovnik" autocomplete="off">
+<button id="searchBtn">🔎 Traži</button>
+</div>
+<button id="nearBtn">📍 Atrakcije u mojoj blizini</button>
+</div>
+</header>
+<main class="wrap">
+<div id="status">Upišite grad i pritisnite „Traži“.</div>
+<div id="results" class="grid"></div>
+</main>
+<footer>Turist Guide • Google Maps se koristi samo za prikaz lokacije i navigaciju.</footer>
+
+<script>
+const data = {
+"Dubrovnik":[
+["🏰","Dubrovačke zidine","Povijesne gradske zidine"],
+["🚶","Stradun","Glavna povijesna ulica Dubrovnika"],
+["🏛️","Knežev dvor","Povijesna palača i muzej"],
+["🏰","Tvrđava Lovrijenac","Tvrđava iznad mora"],
+["🚠","Žičara Dubrovnik","Panoramski pogled na grad"],
+["⛪","Dubrovačka katedrala","Barokna katedrala"]
+],
+"Split":[
+["🏛️","Dioklecijanova palača","Rimska palača u središtu Splita"],
+["🚶","Riva","Poznata splitska šetnica"],
+["⛰️","Marjan","Park-šuma i vidikovci"],
+["⛪","Katedrala sv. Duje","Jedna od najpoznatijih znamenitosti Splita"],
+["🏛️","Peristil","Središnji trg Dioklecijanove palače"],
+["🌊","Bačvice","Poznata gradska plaža"]
+],
+"Mostar":[
+["🌉","Stari most","Najpoznatija znamenitost Mostara"],
+["🏘️","Stari grad Mostar","Povijesna jezgra grada"],
+["🕌","Koski Mehmed-pašina džamija","Povijesna džamija i vidikovac"],
+["🕌","Karađoz-begova džamija","Jedna od poznatih mostarskih džamija"],
+["🏞️","Blagaj Tekija","Poznata tekija uz izvor Bune"],
+["💦","Kravica","Poznati slapovi u Hercegovini"]
+],
+"Sarajevo":[
+["🏘️","Baščaršija","Povijesno središte Sarajeva"],
+["🕌","Gazi Husrev-begova džamija","Povijesna džamija u centru"],
+["🌉","Latinska ćuprija","Poznati povijesni most"],
+["🚠","Trebevićka žičara","Žičara prema Trebeviću"],
+["🏛️","Vijećnica","Jedna od najpoznatijih zgrada Sarajeva"],
+["🏰","Žuta tabija","Povijesna tvrđava i vidikovac"]
+],
+"Zagreb":[
+["🏰","Zagrebačka katedrala","Najpoznatija zagrebačka katedrala"],
+["⛪","Crkva sv. Marka","Poznata crkva na Gornjem gradu"],
+["🚶","Tkalčićeva ulica","Popularna ulica u centru"],
+["🏛️","Muzej prekinutih veza","Poznati zagrebački muzej"],
+["🌳","Maksimir","Veliki gradski park"],
+["🚠","Zagrebačka uspinjača","Povijesna uspinjača"]
+],
+"London":[
+["🏰","Tower of London","Povijesna tvrđava"],
+["🎡","London Eye","Poznati panoramski kotač"],
+["🏛️","British Museum","Veliki svjetski muzej"],
+["🏰","Buckingham Palace","Kraljevska palača"],
+["🌉","Tower Bridge","Poznati londonski most"],
+["⛪","Westminster Abbey","Poznata povijesna crkva"]
+],
+"Rome":[
+["🏟️","Colosseum","Antički rimski amfiteatar"],
+["⛲","Trevi Fountain","Poznata rimska fontana"],
+["🏛️","Pantheon","Antički hram u centru Rima"],
+["🏛️","Roman Forum","Arheološko područje antičkog Rima"],
+["⛪","St. Peter's Basilica","Bazilika sv. Petra"],
+["🏛️","Vatican Museums","Poznati vatikanski muzeji"]
+],
+"Paris":[
+["🗼","Eiffel Tower","Najpoznatija znamenitost Pariza"],
+["🏛️","Louvre Museum","Jedan od najpoznatijih muzeja"],
+["⛪","Notre-Dame","Povijesna pariška katedrala"],
+["🏛️","Arc de Triomphe","Poznati slavoluk"],
+["🌳","Luxembourg Gardens","Poznati pariški vrtovi"],
+["⛪","Sacré-Cœur","Bazilika na Montmartreu"]
+],
+"Vienna":[
+["🏰","Schönbrunn Palace","Carska palača i vrtovi"],
+["🏛️","Hofburg","Povijesna carska palača"],
+["⛪","St. Stephen's Cathedral","Katedrala sv. Stjepana"],
+["🎨","Belvedere","Palača i umjetnička zbirka"],
+["🎡","Prater","Poznati zabavni park"],
+["🎭","Vienna State Opera","Bečka državna opera"]
+]
+};
+
+function key(s){
+ return s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+}
+const normalized={};
+Object.keys(data).forEach(k=>normalized[key(k)]=data[k]);
+
+function mapsUrl(place,city){
+ return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(place+", "+city);
+}
+
+function show(city,list){
+ const results=document.getElementById("results");
+ results.innerHTML="";
+ document.getElementById("status").textContent=`Pronađeno ${list.length} atrakcija za ${city}.`;
+ list.forEach(x=>{
+   const [icon,name,desc]=x;
+   const card=document.createElement("article");
+   card.className="card";
+   card.innerHTML=`<div class="icon">${icon}</div><h3>${name}</h3><div class="meta">${desc}</div>
+   <a class="map" target="_blank" rel="noopener" href="${mapsUrl(name,city)}">📍 Google Maps</a>`;
+   results.appendChild(card);
+ });
+}
+
+function search(){
+ const raw=document.getElementById("city").value.trim();
+ if(!raw){
+   document.getElementById("status").textContent="Molimo upišite grad.";
+   document.getElementById("results").innerHTML="";
+   return;
+ }
+ const list=normalized[key(raw)];
+ if(list){
+   show(raw.charAt(0).toUpperCase()+raw.slice(1),list);
+ }else{
+   document.getElementById("status").textContent=`Za „${raw}“ još nemamo spremljen popis atrakcija.`;
+   document.getElementById("results").innerHTML=`
+   <div class="empty">
+   <b>Grad nije u našoj bazi.</b><br><br>
+   Možemo dodati taj grad u sljedeću verziju. Za sada možete otvoriti Google Maps pretragu za turističke atrakcije:
+   <br><a class="map" target="_blank" rel="noopener" href="${mapsUrl("turističke atrakcije",raw)}">📍 Otvori atrakcije u Google Maps</a>
+   </div>`;
+ }
+}
+
+document.getElementById("searchBtn").addEventListener("click",search);
+document.getElementById("city").addEventListener("keydown",e=>{if(e.key==="Enter")search();});
+document.getElementById("nearBtn").addEventListener("click",()=>{
+ const url="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent("turističke atrakcije u mojoj blizini");
+ window.open(url,"_blank");
+});
+</script>
+</body>
+</html>

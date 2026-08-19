@@ -216,14 +216,31 @@ body:query
 
 const data=await response.json();
 
-let list=data.elements
+const list=data.elements
+.filter(x=>{
+const t=x.tags || {};
+
+return (
+t.historic ||
+t.tourism === "attraction" ||
+t.tourism === "museum" ||
+t.tourism === "gallery" ||
+t.tourism === "theme_park" ||
+t.tourism === "zoo" ||
+t.tourism === "aquarium" ||
+t.tourism === "viewpoint" ||
+t.tourism === "artwork" ||
+t.tourism === "information"
+);
+})
 .map(x=>({
 name:x.tags?.name,
 type:x.tags?.tourism || x.tags?.historic || "attraction",
-lat:x.lat || x.center?.lat,
-lon:x.lon || x.center?.lon
+lat:x.center?.lat,
+lon:x.center?.lon
 }))
-.filter(x=>x.name);
+.filter(x=>x.name)
+.slice(0,20);
 
 const unique=[];
 const seen=new Set();

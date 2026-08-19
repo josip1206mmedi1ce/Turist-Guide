@@ -159,14 +159,18 @@ function search(){
  if(list){
    show(raw.charAt(0).toUpperCase()+raw.slice(1),list);
  }else{
-   document.getElementById("status").textContent=`Za „${raw}“ još nemamo spremljen popis atrakcija.`;
-   document.getElementById("results").innerHTML=`
-   <div class="empty">
-   <b>Grad nije u našoj bazi.</b><br><br>
-   Možemo dodati taj grad u sljedeću verziju. Za sada možete otvoriti Google Maps pretragu za turističke atrakcije:
-   <br><a class="map" target="_blank" rel="noopener" href="${mapsUrl("turističke atrakcije",raw)}">📍 Otvori atrakcije u Google Maps</a>
-   </div>`;
- }
+document.getElementById("status").textContent="Za "+raw+" nemamo spremljen popis atrakcija.";
+document.getElementById("results").innerHTML=`
+<div class="empty">
+<b>${raw} nije u našoj bazi.</b><br><br>
+Ali možete odmah otvoriti Google Maps i pronaći turističke atrakcije za ${raw}.
+<br><br>
+<a class="map" target="_blank" rel="noopener"
+href="${mapsUrl("turističke atrakcije",raw)}">
+📍 Otvori turističke atrakcije u Google Maps
+</a>
+</div>`;
+}
 }
 
 document.getElementById("searchBtn").addEventListener("click",search);

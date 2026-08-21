@@ -3,831 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Turist Guide</title>
-
 <style>
-* {
-box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+body { margin: 0; font-family: Arial, sans-serif; background: #f4f7f9; color: #17212b; }
 
-body {
-margin: 0;
-font-family: Arial, sans-serif;
-background: #f4f7f9;
-color: #17212b;
-}
+header { background: #0078e5; color: white; padding: 22px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); text-align: center; }
+header h1 { margin: 0 0 6px 0; font-size: 24px; }
+header p { margin: 0; font-size: 14px; opacity: 0.9; }
 
-header {
-background: #0878e5;
-color: white;
-padding: 22px 16px;
-box-shadow: 0 2px 8px rgba(0,0,0,.15);
-}
+.main-container { max-width: 800px; margin: 20px auto; padding: 0 15px; }
 
-.wrap {
-max-width: 1200px;
-margin: auto;
-}
+.search-box { display: flex; gap: 10px; margin-bottom: 12px; }
+input[type="text"] { flex: 1; padding: 12px 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; outline: none; }
 
-h1 {
-margin: 0 0 6px;
-font-size: 30px;
-}
+button { padding: 12px 18px; background: #0078e5; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: bold; cursor: pointer; }
+button:hover { background: #005bb5; }
 
-.subtitle {
-margin-bottom: 18px;
-opacity: .95;
-}
+.btn-near { background: #005bb5; margin-bottom: 15px; width: 100%; max-width: 250px; }
 
-.search {
-display: flex;
-gap: 10px;
-flex-wrap: wrap;
-}
+#map { width: 100%; height: 320px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
-#city {
-flex: 1;
-min-width: 220px;
-padding: 14px;
-border: none;
-border-radius: 10px;
-font-size: 16px;
-}
+.status { margin-bottom: 15px; color: #555; font-size: 14px; }
+.results-list { display: flex; flex-direction: column; gap: 10px; }
 
-button {
-border: none;
-border-radius: 10px;
-padding: 13px 18px;
-font-size: 16px;
-font-weight: bold;
-cursor: pointer;
-}
-
-#searchBtn {
-background: white;
-color: #0878e5;
-}
-
-#nearBtn {
-margin-top: 12px;
-background: #075fae;
-color: white;
-}
-
-main {
-max-width: 1200px;
-margin: 20px auto;
-padding: 0 16px;
-}
-
-#status {
-background: white;
-padding: 15px;
-border-radius: 10px;
-margin-bottom: 15px;
-box-shadow: 0 1px 5px rgba(0,0,0,.08);
-}
-
-#map {
-width: 100%;
-height: 450px;
-border-radius: 14px;
-overflow: hidden;
-margin-bottom: 20px;
-box-shadow: 0 2px 8px rgba(0,0,0,.15);
-}
-
-.grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-gap: 16px;
-}
-
-.card {
-background: white;
-border-radius: 14px;
-padding: 18px;
-box-shadow: 0 2px 8px rgba(0,0,0,.1);
-}
-
-.card h2 {
-margin: 0 0 10px;
-font-size: 20px;
-}
-
-.rating {
-color: #e39b00;
-font-weight: bold;
-margin-bottom: 8px;
-}
-
-.address {
-color: #66727d;
-font-size: 14px;
-line-height: 1.4;
-margin-bottom: 15px;
-}
-
-.mapLink {
-display: inline-block;
-background: #0878e5;
-color: white;
-text-decoration: none;
-padding: 10px 14px;
-border-radius: 8px;
-font-weight: bold;
-}
-
-.empty {
-background: white;
-padding: 25px;
-border-radius: 14px;
-text-align: center;
-}
-
-footer {
-text-align: center;
-color: #687580;
-padding: 30px 15px;
-}
-
-@media (max-width: 600px) {
-h1 {
-font-size: 25px;
-}
-
-#map {
-height: 360px;
-}
-
-.search {
-flex-direction: column;
-}
-
-#searchBtn {
-width: 100%;
-}
-}
+.card { background: white; padding: 14px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 4px solid #0078e5; }
+.card h3 { margin: 0 0 6px 0; font-size: 17px; color: #0078e5; }
+.card p { margin: 3px 0; font-size: 13px; color: #555; }
+.card .rating { font-weight: bold; color: #f39c12; }
 </style>
 </head>
-
 <body>
 
 <header>
-<div class="wrap">
-
 <h1>Turist Guide</h1>
-
-<div class="subtitle">
-Pronađite turističke atrakcije u gradu
-</div>
-
-<div class="search">
-<input
-id="city"
-type="text"
-placeholder="Npr. Dubrovnik, Mostar, Split..."
-autocomplete="off"
->
-
-<button id="searchBtn">
-🔎 Traži atrakcije
-</button>
-</div>
-
-<button id="nearBtn">
-📍 Atrakcije u mojoj blizini
-</button>
-
-</div>
+<p>Pronađite turističke atrakcije u gradu</p>
 </header>
 
-<main>
-
-<div id="status">
-Unesite grad i kliknite „Traži atrakcije“.
+<div class="main-container">
+<div class="search-box">
+<input type="text" id="cityInput" placeholder="Unesite grad (npr. dubrovnik)">
+<button onclick="searchAttractions()">📍 Traži atrakcije</button>
 </div>
+
+<button class="btn-near" onclick="getNearAttractions()">📍 Atrakcije u mojoj blizini</button>
 
 <div id="map"></div>
 
-<div id="results" class="grid"></div>
-
-</main>
-
-<footer>
-Turist Guide • Podaci i lokacije putem Google Maps Platforma
-</footer>
-
+<div id="status" class="status">Unesite grad i kliknite "Traži atrakcije".</div>
+<div class="results-list" id="results"></div>
+</div>
 
 <script>
-/*
-====================================================
-GOOGLE MAPS API KLJUČ
-====================================================
-*/
-
-const API_KEY = "AIzaSyCb3CdDumhMfJOsLazdIfJwXzQs4pXJ0Mk";
-(g => {
-var h, a, k,
-p = "The Google Maps JavaScript API",
-c = "google",
-l = "importLibrary",
-q = "__ib__",
-m = document,
-b = window;
-
-b = b[c] || (b[c] = {});
-
-var d = b.maps || (b.maps = {}),
-r = new Set,
-e = new URLSearchParams,
-u = () =>
-h ||
-(h = new Promise(async (f, n) => {
-
-await (a = m.createElement("script"));
-
-e.set("libraries", [...r] + "");
-
-for (k in g) {
-e.set(
-k.replace(
-/[A-Z]/g,
-t => "_" + t[0].toLowerCase()
-),
-g[k]
-);
-}
-
-e.set(
-"callback",
-c + ".maps." + q
-);
-
-a.src =
-`https://maps.${c}apis.com/maps/api/js?` +
-e;
-
-d[q] = f;
-
-a.onerror = () =>
-h = n(
-Error(
-p + " could not load."
-)
-);
-
-a.nonce =
-m.querySelector("script[nonce]")
-?.nonce || "";
-
-m.head.append(a);
-
-}));
-
-d[l]
-? console.warn(
-p + " only loads once. Ignoring:",
-g
-)
-: d[l] =
-(f, ...n) =>
-r.add(f) &&
-u().then(() => d[l](f, ...n));
-
-})({
-
-key: API_KEY,
-
-v: "weekly"
-
-});
-</script>
-  
-
-
-/*
-====================================================
-GLOBALNE VARIJABLE
-====================================================
-*/
-
 let map;
-let infoWindow;
+let service;
 let markers = [];
 
+// Tipovi objekata koje strogo filtriramo i izbacujemo (hoteli, vile, restorani...)
+const excludedTypes = [
+'lodging', 'hotel', 'resort', 'guest_house', 'hostel',
+'campground', 'restaurant', 'cafe', 'bar', 'food'
+];
 
-/*
-====================================================
-POKRETANJE GOOGLE MAPS
-====================================================
-*/
-
-async function initApp() {
-
-const { Map, InfoWindow } =
-await google.maps.importLibrary("maps");
-
-await google.maps.importLibrary("places");
-
-await google.maps.importLibrary("marker");
-
-map = new Map(document.getElementById("map"), {
-center: {
-lat: 43.5081,
-lng: 16.4402
-},
-
-zoom: 7,
-
-mapId: "DEMO_MAP_ID"
+function initMap() {
+// Početni prikaz (Dubrovnik)
+const defaultPos = { lat: 42.6507, lng: 18.0944 };
+map = new google.maps.Map(document.getElementById('map'), {
+center: defaultPos,
+zoom: 13
 });
-
-infoWindow = new InfoWindow();
-
-console.log("Google Maps je pokrenut.");
+service = new google.maps.places.PlacesService(map);
 }
 
-
-/*
-====================================================
-BRISANJE STARIH MARKERA
-====================================================
-*/
-
-function clearMarkers() {
-
-markers.forEach(marker => {
-marker.map = null;
-});
-
-markers = [];
-}
-
-
-/*
-====================================================
-PRIKAZ ATRAKCIJA
-====================================================
-*/
-
-function showPlaces(places, naslov) {
-
-const results = document.getElementById("results");
-
-results.innerHTML = "";
-
-clearMarkers();
-
-if (!places || places.length === 0) {
-
-document.getElementById("status").textContent =
-"Nismo pronašli turističke atrakcije za ovaj upit.";
-
-results.innerHTML = `
-<div class="empty">
-<h2>Nema rezultata</h2>
-<p>Pokušajte s drugim gradom.</p>
-</div>
-`;
-
+function searchAttractions() {
+const city = document.getElementById('cityInput').value.trim();
+if (!city) {
+alert('Molimo unesite grad.');
 return;
 }
 
+document.getElementById('status').innerText = `Pretražujem atrakcije u gradu: ${city}...`;
 
-document.getElementById("status").textContent =
-naslov + " • pronađeno atrakcija: " + places.length;
+const request = {
+query: `tourist attractions point of interest in ${city}`,
+type: 'tourist_attraction'
+};
 
+service.textSearch(request, (results, status) => {
+if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+processResults(results, city);
+} else {
+document.getElementById('status').innerText = 'Greška pri pretrazi ili grad nije pronađen.';
+}
+});
+}
 
+function getNearAttractions() {
+if (!navigator.geolocation) {
+alert('Geolokacija nije podržana u vašem pregledniku.');
+return;
+}
+
+document.getElementById('status').innerText = 'Dohvatam vašu lokaciju...';
+
+navigator.geolocation.getCurrentPosition((pos) => {
+const userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+map.setCenter(userLoc);
+map.setZoom(14);
+
+const request = {
+location: userLoc,
+radius: '4000',
+type: 'tourist_attraction'
+};
+
+service.nearbySearch(request, (results, status) => {
+if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+processResults(results, 'vašoj blizini');
+} else {
+document.getElementById('status').innerText = 'Nisu pronađene atrakcije u blizini.';
+}
+});
+});
+}
+
+function processResults(results, locationLabel) {
+clearMarkers();
+const resultsDiv = document.getElementById('results');
+resultsDiv.innerHTML = '';
+
+let validCount = 0;
 const bounds = new google.maps.LatLngBounds();
 
+results.forEach(place => {
+// Provjera da li objekat sadrži bilo koji od zabranjenih tipova (hotel, smještaj...)
+const isExcluded = place.types.some(t => excludedTypes.includes(t));
 
-places.forEach((place, index) => {
+if (!isExcluded && place.name) {
+validCount++;
 
-if (!place.location) {
-return;
-}
-
-
-/*
-================================================
-MARKER
-================================================
-*/
-
-const marker =
-new google.maps.marker.AdvancedMarkerElement({
+// Dodavanje pina na mapu
+const marker = new google.maps.Marker({
 map: map,
-position: place.location,
-title: place.displayName || "Turistička atrakcija"
+position: place.geometry.location,
+title: place.name
 });
 
+const infoWindow = new google.maps.InfoWindow({
+content: `<b>${place.name}</b><br>${place.formatted_address || ''}`
+});
 
+marker.addListener('click', () => infoWindow.open(map, marker));
 markers.push(marker);
 
-bounds.extend(place.location);
-
-
-/*
-================================================
-INFO PROZOR
-================================================
-*/
-
-marker.addListener("click", () => {
-
-const content = `
-<div style="max-width:260px">
-<strong>
-${escapeHtml(place.displayName || "Turistička atrakcija")}
-</strong>
-<br><br>
-
-${
-place.rating
-? "⭐ " + place.rating
-: ""
+if (place.geometry.viewport) {
+bounds.union(place.geometry.viewport);
+} else {
+bounds.extend(place.geometry.location);
 }
 
-<br>
-
-${
-place.googleMapsURI
-? `<br>
-<a href="${place.googleMapsURI}"
-target="_blank"
-rel="noopener">
-Otvori u Google Maps
-</a>`
-: ""
-}
-</div>
-`;
-
-infoWindow.setContent(content);
-
-infoWindow.open({
-map: map,
-anchor: marker
-});
-
-});
-
-
-/*
-================================================
-KARTICA
-================================================
-*/
-
-const card = document.createElement("article");
-
-card.className = "card";
-
-
-const title =
-place.displayName ||
-"Turistička atrakcija";
-
-
-const rating =
-place.rating
-? `<div class="rating">
-⭐ ${place.rating}
-</div>`
-: "";
-
-
-const address =
-place.formattedAddress
-? `<div class="address">
-📍 ${escapeHtml(place.formattedAddress)}
-</div>`
-: "";
-
-
-const mapLink =
-place.googleMapsURI
-? `<a
-class="mapLink"
-href="${place.googleMapsURI}"
-target="_blank"
-rel="noopener">
-Otvori u Google Maps
-</a>`
-: "";
-
-
+// Prikaz kartice
+const card = document.createElement('div');
+card.className = 'card';
 card.innerHTML = `
-<h2>${escapeHtml(title)}</h2>
-
-${rating}
-
-${address}
-
-${mapLink}
+<h3>${place.name}</h3>
+<p>${place.formatted_address || 'Lokacija na mapi'}</p>
+<p class="rating">Ocjena: ${place.rating ? place.rating + ' ★ (' + place.user_ratings_total + ' recenzija)' : 'Nema ocjene'}</p>
 `;
-
-
-results.appendChild(card);
-
+resultsDiv.appendChild(card);
+}
 });
 
-
-/*
-================================================
-AUTOMATSKI ZOOM NA REZULTATE
-================================================
-*/
-
-if (!bounds.isEmpty()) {
-
+if (validCount > 0) {
 map.fitBounds(bounds);
-
-if (places.length === 1) {
-map.setZoom(15);
-}
-}
-}
-
-
-/*
-====================================================
-TRAŽENJE ATRAKCIJA U GRADU
-====================================================
-*/
-
-async function searchCity() {
-
-const input =
-document.getElementById("city");
-
-const city =
-input.value.trim();
-
-
-if (!city) {
-
-document.getElementById("status").textContent =
-"Molimo unesite grad.";
-
-return;
-}
-
-
-document.getElementById("status").textContent =
-"Tražim turističke atrakcije u gradu " +
-city + "...";
-
-
-document.getElementById("results").innerHTML = "";
-
-
-try {
-
-const { Place } =
-await google.maps.importLibrary("places");
-
-
-const request = {
-
-textQuery:
-"turističke atrakcije u " + city,
-
-includedType:
-"tourist_attraction",
-
-useStrictTypeFiltering:
-true,
-
-language:
-"hr",
-
-region:
-"HR",
-
-maxResultCount:
-20,
-
-fields: [
-"displayName",
-"formattedAddress",
-"location",
-"rating",
-"googleMapsURI"
-]
-};
-
-
-const { places } =
-await Place.searchByText(request);
-
-
-showPlaces(
-places,
-"Turističke atrakcije: " + city
-);
-
-
-} catch (error) {
-
-console.error(error);
-
-document.getElementById("status").textContent =
-"Greška pri pretraživanju Google Places API-ja.";
-
-document.getElementById("results").innerHTML = `
-<div class="empty">
-<h2>Došlo je do greške</h2>
-<p>
-Provjerite API ključ i postavke Google Maps Platforme.
-</p>
-</div>
-`;
+document.getElementById('status').innerHTML = `Pronađeno <b>${validCount}</b> atrakcija u lokaciji: <b>${locationLabel}</b>.`;
+} else {
+document.getElementById('status').innerText = `Nisu pronađene čiste atrakcije (bez smještaja) za ${locationLabel}.`;
 }
 }
 
-
-/*
-====================================================
-ATRAKCIJE U BLIZINI
-====================================================
-*/
-
-function findNearby() {
-
-if (!navigator.geolocation) {
-
-document.getElementById("status").textContent =
-"Vaš uređaj ne podržava određivanje lokacije.";
-
-return;
+function clearMarkers() {
+markers.forEach(m => m.setMap(null));
+markers = [];
 }
-
-
-document.getElementById("status").textContent =
-"Dohvaćam vašu lokaciju...";
-
-
-navigator.geolocation.getCurrentPosition(
-
-async position => {
-
-const center = {
-
-lat: position.coords.latitude,
-
-lng: position.coords.longitude
-
-};
-
-
-map.setCenter(center);
-
-map.setZoom(13);
-
-
-try {
-
-const { Place } =
-await google.maps.importLibrary("places");
-
-
-const request = {
-
-fields: [
-"displayName",
-"formattedAddress",
-"location",
-"rating",
-"googleMapsURI"
-],
-
-locationRestriction: {
-
-center: center,
-
-radius: 30000
-
-},
-
-includedPrimaryTypes: [
-"tourist_attraction"
-],
-
-maxResultCount: 20,
-
-language: "hr",
-
-region: "HR"
-};
-
-
-const { places } =
-await Place.searchNearby(request);
-
-
-showPlaces(
-places,
-"Turističke atrakcije u vašoj blizini"
-);
-
-
-} catch (error) {
-
-console.error(error);
-
-document.getElementById("status").textContent =
-"Greška pri pronalaženju atrakcija u blizini.";
-}
-
-},
-
-
-error => {
-
-console.error(error);
-
-document.getElementById("status").textContent =
-"Nije moguće dobiti vašu lokaciju. Dopustite pristup lokaciji u pregledniku.";
-
-},
-
-{
-enableHighAccuracy: true,
-timeout: 10000,
-maximumAge: 60000
-}
-
-);
-}
-
-
-/*
-====================================================
-ZAŠTITA TEKSTA OD HTML-A
-====================================================
-*/
-
-function escapeHtml(text) {
-
-return String(text)
-.replaceAll("&", "&amp;")
-.replaceAll("<", "&lt;")
-.replaceAll(">", "&gt;")
-.replaceAll('"', "&quot;")
-.replaceAll("'", "&#039;");
-}
-
-
-/*
-====================================================
-GUMBI
-====================================================
-*/
-
-document
-.getElementById("searchBtn")
-.addEventListener("click", searchCity);
-
-
-document
-.getElementById("nearBtn")
-.addEventListener("click", findNearby);
-
-
-document
-.getElementById("city")
-.addEventListener("keydown", event => {
-
-if (event.key === "Enter") {
-
-searchCity();
-
-}
-
-});
-
-
-/*
-====================================================
-POKRENI APLIKACIJU
-====================================================
-*/
-
-initApp();
-
 </script>
 
-
-<!--
-====================================================
-GOOGLE MAPS JAVASCRIPT API
-====================================================
--->
-
-
-
+<!-- ZAMIJENITE "TVOJ_GOOGLE_API_KLJUC" S VAŠIM PRAVIM API KLJUČEM -->
+<script async defer
+src="https://maps.googleapis.com/maps/api/js?key="AIzaSyCb3CdDumhMfJOsLazdIfJwXzQs4pXJ0Mk";&libraries=places&callback=initMap">
+</script>
 </body>
 </html>

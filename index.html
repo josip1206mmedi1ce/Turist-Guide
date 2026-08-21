@@ -6,9 +6,9 @@
 <title>Turist Guide</title>
 <style>
 * { box-sizing: border-box; }
-body { margin: 0; font-family: Arial, sans-serif; background: #f4f7f9; color: #17212b; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f7f9; color: #17212b; }
 
-header { background: #0078e5; color: white; padding: 22px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); text-align: center; }
+header { background: #0078e5; color: white; padding: 20px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); text-align: center; }
 header h1 { margin: 0 0 6px 0; font-size: 24px; }
 header p { margin: 0; font-size: 14px; opacity: 0.9; }
 
@@ -25,12 +25,28 @@ button:hover { background: #005bb5; }
 #map { width: 100%; height: 320px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
 .status { margin-bottom: 15px; color: #555; font-size: 14px; }
-.results-list { display: flex; flex-direction: column; gap: 10px; }
+.results-list { display: flex; flex-direction: column; gap: 12px; }
 
-.card { background: white; padding: 14px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); border-left: 4px solid #0078e5; }
-.card h3 { margin: 0 0 6px 0; font-size: 17px; color: #0078e5; }
-.card p { margin: 3px 0; font-size: 13px; color: #555; }
-.card .rating { font-weight: bold; color: #f39c12; }
+.card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #0078e5; display: flex; flex-direction: column; gap: 6px; }
+.card h3 { margin: 0; font-size: 18px; color: #0078e5; }
+.card p { margin: 0; font-size: 13px; color: #555; }
+.card .distance { font-weight: bold; color: #27ae60; font-size: 14px; margin-top: 2px; }
+.card .rating { font-weight: bold; color: #f39c12; font-size: 13px; }
+
+.btn-maps {
+display: inline-block;
+margin-top: 8px;
+padding: 10px 14px;
+background: #34a853;
+color: white;
+text-decoration: none;
+border-radius: 6px;
+font-size: 13px;
+font-weight: bold;
+text-align: center;
+align-self: flex-start;
+}
+.btn-maps:hover { background: #2d8e47; }
 </style>
 </head>
 <body>
@@ -59,20 +75,35 @@ let map;
 let service;
 let markers = [];
 
-// Tipovi objekata koje strogo filtriramo i izbacujemo (hoteli, vile, restorani...)
 const excludedTypes = [
 'lodging', 'hotel', 'resort', 'guest_house', 'hostel',
 'campground', 'restaurant', 'cafe', 'bar', 'food'
 ];
 
 function initMap() {
-// Početni prikaz (Dubrovnik)
 const defaultPos = { lat: 42.6507, lng: 18.0944 };
 map = new google.maps.Map(document.getElementById('map'), {
 center: defaultPos,
 zoom: 13
 });
 service = new google.maps.places.PlacesService(map);
+}
+
+function calculateDistance(lat1, lon1, lat2, lon2) {
+const R = 6371;
+const dLat = (lat2 - lat1) * Math.PI / 180;
+const dLon = (lon2 - lon1) * Math.PI / 180;
+const a =
+Math.sin(dLat/2) * Math.sin(dLat/2) +
+Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+Math.sin(dLon/2) * Math.sin(dLon/2);
+const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+const d = R * c;
+
+if (d < 1) {
+return Math.round(d * 1000) + ' m';
+}
+return d.toFixed(1) + ' km';
 }
 
 function searchAttractions() {
@@ -91,7 +122,8 @@ type: 'tourist_attraction'
 
 service.textSearch(request, (results, status) => {
 if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-processResults(results, city);
+const centerLoc = results[0].geometry.location;
+processResults(results, city, centerLoc, "od centra grada");
 } else {
 document.getElementById('status').innerText = 'Greška pri pretrazi ili grad nije pronađen.';
 }
@@ -107,7 +139,7 @@ return;
 document.getElementById('status').innerText = 'Dohvatam vašu lokaciju...';
 
 navigator.geolocation.getCurrentPosition((pos) => {
-const userLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+const userLoc = new google.maps.LatLng(pos.coords.latitude, pos.coords.longitude);
 map.setCenter(userLoc);
 map.setZoom(14);
 
@@ -119,7 +151,7 @@ type: 'tourist_attraction'
 
 service.nearbySearch(request, (results, status) => {
 if (status === google.maps.places.PlacesServiceStatus.OK && results) {
-processResults(results, 'vašoj blizini');
+processResults(results, 'vašoj blizini', userLoc, "od vaše trenutne lokacije");
 } else {
 document.getElementById('status').innerText = 'Nisu pronađene atrakcije u blizini.';
 }
@@ -127,7 +159,7 @@ document.getElementById('status').innerText = 'Nisu pronađene atrakcije u blizi
 });
 }
 
-function processResults(results, locationLabel) {
+function processResults(results, locationLabel, referencePoint, distanceLabel) {
 clearMarkers();
 const resultsDiv = document.getElementById('results');
 resultsDiv.innerHTML = '';
@@ -136,13 +168,21 @@ let validCount = 0;
 const bounds = new google.maps.LatLngBounds();
 
 results.forEach(place => {
-// Provjera da li objekat sadrži bilo koji od zabranjenih tipova (hotel, smještaj...)
 const isExcluded = place.types.some(t => excludedTypes.includes(t));
 
 if (!isExcluded && place.name) {
 validCount++;
 
-// Dodavanje pina na mapu
+const placeLat = place.geometry.location.lat();
+const placeLng = place.geometry.location.lng();
+
+const distStr = calculateDistance(
+referencePoint.lat(), referencePoint.lng(),
+placeLat, placeLng
+);
+
+const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name)}&query_place_id=${place.place_id}`;
+
 const marker = new google.maps.Marker({
 map: map,
 position: place.geometry.location,
@@ -150,7 +190,7 @@ title: place.name
 });
 
 const infoWindow = new google.maps.InfoWindow({
-content: `<b>${place.name}</b><br>${place.formatted_address || ''}`
+content: `<b>${place.name}</b><br>Udaljenost: ${distStr}<br><a href="${mapsUrl}" target="_blank">Otvori u Google Maps</a>`
 });
 
 marker.addListener('click', () => infoWindow.open(map, marker));
@@ -162,13 +202,14 @@ bounds.union(place.geometry.viewport);
 bounds.extend(place.geometry.location);
 }
 
-// Prikaz kartice
 const card = document.createElement('div');
 card.className = 'card';
 card.innerHTML = `
 <h3>${place.name}</h3>
-<p>${place.formatted_address || 'Lokacija na mapi'}</p>
-<p class="rating">Ocjena: ${place.rating ? place.rating + ' ★ (' + place.user_ratings_total + ' recenzija)' : 'Nema ocjene'}</p>
+<p>${place.formatted_address || place.vicinity || 'Lokacija na mapi'}</p>
+<div class="distance">📍 Udaljenost: ${distStr} (${distanceLabel})</div>
+<div class="rating">Ocjena: ${place.rating ? place.rating + ' ★ (' + place.user_ratings_total + ' recenzija)' : 'Nema ocjene'}</div>
+<a class="btn-maps" href="${mapsUrl}" target="_blank">🗺️ Otvori u Google Maps</a>
 `;
 resultsDiv.appendChild(card);
 }
@@ -188,9 +229,8 @@ markers = [];
 }
 </script>
 
-<!-- ZAMIJENITE "TVOJ_GOOGLE_API_KLJUC" S VAŠIM PRAVIM API KLJUČEM -->
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCb3CdDumhMfJOsLazdIfJwXzQs4pXJ0Mk&libraries=places&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCb3CdDumMfJ0sLazdIfJwXzQs4pXJ0MK&libraries=places&callback=initMap">
 </script>
 </body>
 </html>

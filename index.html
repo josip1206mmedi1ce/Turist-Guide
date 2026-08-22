@@ -34,8 +34,8 @@ button:hover { background: #005bb5; }
 .card .rating { font-weight: bold; color: #f39c12; font-size: 13px; }
 
 /* Galerija slika */
-.photo-gallery { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; }
-.photo-gallery img { width: 110px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer; flex-shrink: 0; transition: transform 0.2s; }
+.photo-gallery { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; -webkit-overflow-scrolling: touch; }
+.photo-gallery img { width: 120px; height: 90px; object-fit: cover; border-radius: 6px; cursor: pointer; flex-shrink: 0; transition: transform 0.2s; }
 .photo-gallery img:hover { transform: scale(1.03); }
 
 /* Modal za prikaz velike slike */
@@ -218,17 +218,7 @@ bounds.union(place.geometry.viewport);
 bounds.extend(place.geometry.location);
 }
 
-// Priprema slika
-let photosHtml = '';
-if (place.photos && place.photos.length > 0) {
-photosHtml = '<div class="photo-gallery">';
-const maxPhotos = Math.min(place.photos.length, 4);
-for (let i = 0; i < maxPhotos; i++) {
-const imgUrl = place.photos[i].getUrl({ maxWidth: 600, maxHeight: 400 });
-photosHtml += `<img src="${imgUrl}" alt="${place.name}" onclick="openModal('${imgUrl}')">`;
-}
-photosHtml += '</div>';
-}
+const galleryId = `gallery-${place.place_id}`;
 
 const card = document.createElement('div');
 card.className = 'card';
@@ -237,10 +227,12 @@ card.innerHTML = `
 <p>${place.formatted_address || place.vicinity || 'Lokacija na mapi'}</p>
 <div class="distance">📍 Udaljenost: ${distStr} (${distanceLabel})</div>
 <div class="rating">Ocjena: ${place.rating ? place.rating + ' ★ (' + place.user_ratings_total + ' recenzija)' : 'Nema ocjene'}</div>
-${photosHtml}
+<div id="${galleryId}" class="photo-gallery"></div>
 <a class="btn-maps" href="${mapsUrl}" target="_blank">🗺️ Otvori u Google Maps</a>
 `;
 resultsDiv.appendChild(card);
+
+fetchPlaceDetails(place.place_id, galleryId);
 }
 });
 
@@ -250,6 +242,28 @@ document.getElementById('status').innerHTML = `Pronađeno <b>${validCount}</b> a
 } else {
 document.getElementById('status').innerText = `Nisu pronađene čiste atrakcije (bez smještaja) za ${locationLabel}.`;
 }
+}
+
+function fetchPlaceDetails(placeId, galleryDivId) {
+const request = {
+placeId: placeId,
+fields: ['photos']
+};
+
+service.getDetails(request, (placeDetails, status) => {
+if (status === google.maps.places.PlacesServiceStatus.OK && placeDetails && placeDetails.photos) {
+const galleryDiv = document.getElementById(galleryDivId);
+if (galleryDiv) {
+let photosHtml = '';
+const maxPhotos = Math.min(placeDetails.photos.length, 8);
+for (let i = 0; i < maxPhotos; i++) {
+const imgUrl = placeDetails.photos[i].getUrl({ maxWidth: 800, maxHeight: 600 });
+photosHtml += `<img src="${imgUrl}" alt="Atrakcija" onclick="openModal('${imgUrl}')">`;
+}
+galleryDiv.innerHTML = photosHtml;
+}
+}
+});
 }
 
 function clearMarkers() {

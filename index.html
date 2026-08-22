@@ -25,13 +25,23 @@ button:hover { background: #005bb5; }
 #map { width: 100%; height: 320px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 
 .status { margin-bottom: 15px; color: #555; font-size: 14px; }
-.results-list { display: flex; flex-direction: column; gap: 12px; }
+.results-list { display: flex; flex-direction: column; gap: 16px; }
 
-.card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #0078e5; display: flex; flex-direction: column; gap: 6px; }
+.card { background: white; padding: 16px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 5px solid #0078e5; display: flex; flex-direction: column; gap: 8px; }
 .card h3 { margin: 0; font-size: 18px; color: #0078e5; }
 .card p { margin: 0; font-size: 13px; color: #555; }
-.card .distance { font-weight: bold; color: #27ae60; font-size: 14px; margin-top: 2px; }
+.card .distance { font-weight: bold; color: #27ae60; font-size: 14px; }
 .card .rating { font-weight: bold; color: #f39c12; font-size: 13px; }
+
+/* Galerija slika */
+.photo-gallery { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; margin-top: 5px; }
+.photo-gallery img { width: 110px; height: 80px; object-fit: cover; border-radius: 6px; cursor: pointer; flex-shrink: 0; transition: transform 0.2s; }
+.photo-gallery img:hover { transform: scale(1.03); }
+
+/* Modal za prikaz velike slike */
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; }
+.modal img { max-width: 90%; max-height: 80%; border-radius: 8px; box-shadow: 0 4px 15px rgba(255,255,255,0.2); }
+.modal-close { position: absolute; top: 20px; right: 25px; color: white; font-size: 35px; font-weight: bold; cursor: pointer; }
 
 .btn-maps {
 display: inline-block;
@@ -58,7 +68,7 @@ align-self: flex-start;
 
 <div class="main-container">
 <div class="search-box">
-<input type="text" id="cityInput" placeholder="Unesite grad (npr. dubrovnik)">
+<input type="text" id="cityInput" placeholder="Unesite grad (npr. Paris ili Dubrovnik)">
 <button onclick="searchAttractions()">📍 Traži atrakcije</button>
 </div>
 
@@ -68,6 +78,12 @@ align-self: flex-start;
 
 <div id="status" class="status">Unesite grad i kliknite "Traži atrakcije".</div>
 <div class="results-list" id="results"></div>
+</div>
+
+<!-- Modal za veliku sliku -->
+<div id="imageModal" class="modal" onclick="closeModal()">
+<span class="modal-close" onclick="closeModal()">&times;</span>
+<img id="modalImg" src="">
 </div>
 
 <script>
@@ -81,10 +97,10 @@ const excludedTypes = [
 ];
 
 function initMap() {
-const defaultPos = { lat: 42.6507, lng: 18.0944 };
+const defaultPos = { lat: 48.8566, lng: 2.3522 };
 map = new google.maps.Map(document.getElementById('map'), {
 center: defaultPos,
-zoom: 13
+zoom: 12
 });
 service = new google.maps.places.PlacesService(map);
 }
@@ -202,6 +218,18 @@ bounds.union(place.geometry.viewport);
 bounds.extend(place.geometry.location);
 }
 
+// Priprema slika
+let photosHtml = '';
+if (place.photos && place.photos.length > 0) {
+photosHtml = '<div class="photo-gallery">';
+const maxPhotos = Math.min(place.photos.length, 4);
+for (let i = 0; i < maxPhotos; i++) {
+const imgUrl = place.photos[i].getUrl({ maxWidth: 600, maxHeight: 400 });
+photosHtml += `<img src="${imgUrl}" alt="${place.name}" onclick="openModal('${imgUrl}')">`;
+}
+photosHtml += '</div>';
+}
+
 const card = document.createElement('div');
 card.className = 'card';
 card.innerHTML = `
@@ -209,6 +237,7 @@ card.innerHTML = `
 <p>${place.formatted_address || place.vicinity || 'Lokacija na mapi'}</p>
 <div class="distance">📍 Udaljenost: ${distStr} (${distanceLabel})</div>
 <div class="rating">Ocjena: ${place.rating ? place.rating + ' ★ (' + place.user_ratings_total + ' recenzija)' : 'Nema ocjene'}</div>
+${photosHtml}
 <a class="btn-maps" href="${mapsUrl}" target="_blank">🗺️ Otvori u Google Maps</a>
 `;
 resultsDiv.appendChild(card);
@@ -227,10 +256,19 @@ function clearMarkers() {
 markers.forEach(m => m.setMap(null));
 markers = [];
 }
+
+function openModal(url) {
+document.getElementById('modalImg').src = url;
+document.getElementById('imageModal').style.display = 'flex';
+}
+
+function closeModal() {
+document.getElementById('imageModal').style.display = 'none';
+}
 </script>
 
 <script async defer
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCb3CdDumhMfJOsLazdIfJwXzQs4pXJ0Mk&libraries=places&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCb3CdDumMfJ0sLazdIfJwXzQs4pXJ0MK&libraries=places&callback=initMap">
 </script>
 </body>
 </html>
